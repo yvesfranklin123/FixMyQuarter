@@ -84,7 +84,7 @@ Dans de nombreuses villes, des problèmes du quotidien persistent faute de visib
 
 ---
 
-## 🔎 Mapping explicite
+##  Mapping explicite
 
 ### Scalable
 - API **stateless** + autoscaling horizontal  
@@ -117,7 +117,7 @@ Dans de nombreuses villes, des problèmes du quotidien persistent faute de visib
 | CI/CD                | GitHub Actions                                |
 | Déploiement (exemples)| Heroku, Render, Railway, Fly.io, AWS, Azure  |
 
-# 🖥️ Frontend
+#  Frontend
 
 ## Objectifs UX
 - **Rapidité** d’usage (report en moins de 30 secondes, 3 champs max requis).  
