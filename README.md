@@ -4,7 +4,7 @@
 
 # FixMyQuarter 
 
-**Une plateforme communautaire open-source pour signaler, suivre et résoudre les problèmes de quartier partout dans le monde.**  
+**Une plateforme communautaire open-source pour signaler, suivre et résoudre les problèmes de quartier.**  
 *(nids-de-poule, éclairage défectueux, fuites d’eau, déchets, sécurité, accessibilité, etc.)*
 
 ---
@@ -12,13 +12,12 @@
 ##  Vision (en tant que CEO)
 
 **FixMyQuarter** est un service d’intérêt général qui transforme les signalements citoyens en actions concrètes, grâce à une collaboration structurée entre habitants, associations et autorités locales.  
-Notre promesse : **scalabilité** (de la rue au pays), **tolérance aux pannes** (service fiable même en conditions réseaux difficiles) et **collaboration** (co-construction transparente et traçable des solutions).
 
 ---
 
 ##  Contexte
 
-Dans de nombreuses villes à travers le monde, des problèmes du quotidien persistent faute de visibilité, de priorisation ou de canaux simples pour les remonter. FixMyQuarter permet aux citoyens de **signaler** en quelques secondes, de **prioriser** collectivement, et aux organisations (mairies, ONG, opérateurs) de **planifier** et **clôturer** efficacement les résolutions.
+Dans de nombreuses villes, des problèmes du quotidien persistent faute de visibilité, de priorisation ou de canaux simples pour les remonter. FixMyQuarter permet aux citoyens de **signaler** en quelques secondes, de **prioriser** collectivement, et aux organisations (mairies, ONG, opérateurs) de **planifier** et **clôturer** efficacement les résolutions.
 
 **Cas d’usage typiques**
 - **Voirie** : nids-de-poule, trottoirs endommagés  
@@ -50,17 +49,13 @@ Dans de nombreuses villes à travers le monde, des problèmes du quotidien persi
 - API REST publique (**Swagger/OpenAPI**)  
 - Webhooks & file d’attente pour synchroniser vers des outils tiers (ex. helpdesk municipal)
 
-### Internationalisation
-- i18n (interfaces et catégories locales)  
-- Fuseaux horaires & unités localisées
-
 ---
 
 ##  Architecture (scalable, tolérante aux pannes, collaborative)
 
 - **Backend** : Python + Flask (API stateless, prête à l’horizontal scaling derrière un load balancer)
 - **Base de données** : SQLite (dev) / PostgreSQL (prod, avec possibilité de read replicas)
-- **Stockage de médias** : S3/MinIO (objets), CDN optionnel
+- **Stockage de médias** : S3/MinIO (objets), CDN optionnel ou un serveur de fichier crée
 
 ### Asynchrone / Résilience
 - Celery + Redis/RabbitMQ pour les tâches (redimensionnement images, webhooks, notifications)  
@@ -70,7 +65,7 @@ Dans de nombreuses villes à travers le monde, des problèmes du quotidien persi
 - Redis (listes, recherche, throttling)
 
 ### Observabilité
-- Logs structurés (JSON), traçage, métriques (Prometheus/Grafana en option)  
+- Logs structurés (JSON), traçage, métriques (Prometheus/Grafana)  
 - SLO/alertes basiques (latence API, taux d’erreur)
 
 ### Sécurité & Gouvernance
@@ -89,31 +84,31 @@ Dans de nombreuses villes à travers le monde, des problèmes du quotidien persi
 
 ---
 
-## 🔎 Mapping explicite au devoir
+## 🔎 Mapping explicite
 
-### “Scalable”
+### Scalable
 - API **stateless** + autoscaling horizontal  
 - Stockage **objet** + CDN pour servir les médias globalement  
 - File d’attente (Celery) pour **lisser les pics** de charge
 
-### “Fault tolerant” (tolérant aux pannes)
+### Fault tolerant
 - **Retries/backoff** sur jobs, **idempotence**, **DLQ** optionnelle  
 - Cache & **dégradations gracieuses** (ex. fallback sans géoloc)  
 - **Health checks**, readiness/liveness probes
 
-### “Allow collaboration” (collaboration)
+### Allow collaboration
 - Commentaires, votes, rôles, **modération**, historique des statuts  
 - **Webhooks** pour brancher des partenaires (municipalités/ONG)
 
 ---
 
-##  Pile technique
+##  technique
 
 | Composant            | Technologie                                  |
 |----------------------|-----------------------------------------------|
 | Backend API          | Python + Flask                                |
 | DB                   | SQLite (dev) / PostgreSQL (prod via Docker)   |
-| Files                | S3 / MinIO                                    |
+| Files                | S3 / MinIO ou par un serveur de fichier crée  |
 | Asynchrone           | Celery + Redis/RabbitMQ                       |
 | Cache                | Redis                                         |
 | Conteneurisation     | Docker, docker-compose                        |
@@ -121,3 +116,17 @@ Dans de nombreuses villes à travers le monde, des problèmes du quotidien persi
 | Tests                | Pytest                                        |
 | CI/CD                | GitHub Actions                                |
 | Déploiement (exemples)| Heroku, Render, Railway, Fly.io, AWS, Azure  |
+
+# 🖥️ Frontend
+
+## Objectifs UX
+- **Rapidité** d’usage (report en moins de 30 secondes, 3 champs max requis).  
+- **Clarté** (carte + liste filtrable, statuts visibles).  
+- **Inclusion** (mobile-first).  
+- **Résilience** (mode hors-ligne : brouillons + synchronisation).
+
+## Stack 
+- **Framework** : **Next.js (React)** + App Router, TypeScript  
+- **UI** : **Tailwind CSS** + composants **shadcn/ui** + **lucide-react** pour les icônes  
+- **Données** : **@tanstack/react-query** (fetch/cache), **Zod** + **react-hook-form** pour la validation des formulaires  
+- **Carte** : **Leaflet** ou **MapLibre** + tuiles OpenStreetMap  
