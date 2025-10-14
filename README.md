@@ -2,21 +2,21 @@
   <img src="assets/fixmyquarter-banner.png" alt="FixMyQuarter banner" width="480">
 </p>
 
-# FixMyQuarter 🌍
+# FixMyQuarter 
 
 **Une plateforme communautaire open-source pour signaler, suivre et résoudre les problèmes de quartier partout dans le monde.**  
 *(nids-de-poule, éclairage défectueux, fuites d’eau, déchets, sécurité, accessibilité, etc.)*
 
 ---
 
-## 🧭 Vision (en tant que CEO)
+##  Vision (en tant que CEO)
 
 **FixMyQuarter** est un service d’intérêt général qui transforme les signalements citoyens en actions concrètes, grâce à une collaboration structurée entre habitants, associations et autorités locales.  
 Notre promesse : **scalabilité** (de la rue au pays), **tolérance aux pannes** (service fiable même en conditions réseaux difficiles) et **collaboration** (co-construction transparente et traçable des solutions).
 
 ---
 
-## 🌍 Contexte
+##  Contexte
 
 Dans de nombreuses villes à travers le monde, des problèmes du quotidien persistent faute de visibilité, de priorisation ou de canaux simples pour les remonter. FixMyQuarter permet aux citoyens de **signaler** en quelques secondes, de **prioriser** collectivement, et aux organisations (mairies, ONG, opérateurs) de **planifier** et **clôturer** efficacement les résolutions.
 
@@ -28,7 +28,7 @@ Dans de nombreuses villes à travers le monde, des problèmes du quotidien persi
 
 ---
 
-## 🛠️ Fonctionnalités
+##  Fonctionnalités
 
 ### Création de signalements
 - Titre, description  
@@ -56,7 +56,7 @@ Dans de nombreuses villes à travers le monde, des problèmes du quotidien persi
 
 ---
 
-## 🧱 Architecture (scalable, tolérante aux pannes, collaborative)
+##  Architecture (scalable, tolérante aux pannes, collaborative)
 
 - **Backend** : Python + Flask (API stateless, prête à l’horizontal scaling derrière un load balancer)
 - **Base de données** : SQLite (dev) / PostgreSQL (prod, avec possibilité de read replicas)
@@ -107,7 +107,7 @@ Dans de nombreuses villes à travers le monde, des problèmes du quotidien persi
 
 ---
 
-## ⚙️ Pile technique
+##  Pile technique
 
 | Composant            | Technologie                                  |
 |----------------------|-----------------------------------------------|
