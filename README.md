@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/fixmyquarter-banner.png" alt="FixMyQuarter banner" width="820">
+  <img src="assets/fixmyquarter-banner.png" alt="FixMyQuarter banner" width="480">
 </p>
 
 # FixMyQuarter 🌍
