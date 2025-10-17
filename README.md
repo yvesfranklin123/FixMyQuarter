@@ -177,15 +177,7 @@ Le frontend est pensé pour être **simple, rapide et inclusif**.
 
 ---
 
-## **9. Gouvernance du projet open-source**
-
-FixMyQuarter est open-source et hébergé sur GitHub.
-Les contributions sont régies par un **Code of Conduct**, une **roadmap publique** et des **issues structurées**.
-L’objectif est de construire une **communauté de développeurs, designers et citoyens** autour du projet, pour l’adapter à d’autres villes.
-
----
-
-## **10. Planification et calendrier d’activités**
+## **9. Planification et calendrier d’activités**
 
 | Phase       | Activités principales                                                     | Durée estimée | 
 | ----------- | ------------------------------------------------------------------------- | ------------- | 
@@ -203,7 +195,7 @@ Durée totale estimée : **3 à 4 mois**, avec des itérations agiles et des poi
 
 ---
 
-## **11. Conclusion**
+## **10. Conclusion**
 
 FixMyQuarter est bien plus qu’une simple application de signalement. C’est un **système distribué intelligent**, soutenu par le **cloud computing**, qui transforme la participation citoyenne en véritable levier d’action collective.
 Grâce à son architecture modulaire, son approche open-source et sa scalabilité, le projet peut être déployé dans n’importe quelle ville du monde, tout en restant léger, résilient et économique.
