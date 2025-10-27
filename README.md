@@ -9,7 +9,7 @@
 
 ## **1. Introduction générale**
 
-Les villes modernes, petites ou grandes, partagent un défi commun : la gestion efficace des problèmes du quotidien rencontrés par leurs habitants. Qu’il s’agisse d’un lampadaire défectueux, d’une fuite d’eau, d’un dépôt d’ordures illégal ou d’un nid-de-poule, ces incidents dégradent la qualité de vie et nuisent à la perception qu’ont les citoyens de leurs institutions.
+Les villes modernes, petites ou grandes, partagent un défi commun : la gestion efficace des problèmes du quotidien rencontrés par leurs habitants. Comme ceux des nids de poules, ces incidents dégradent la qualité de vie et nuisent à la perception qu’ont les citoyens de leurs institutions.
 Dans la plupart des cas, ces problèmes sont signalés par téléphone, e-mail, ou via les réseaux sociaux des canaux non centralisés, souvent inefficaces, qui entraînent une perte d’information, des doublons et des délais importants de traitement. Les municipalités, quant à elles, peinent à prioriser les actions et à mesurer leur impact faute d’outils structurés.
 
 C’est pour répondre à cette problématique que naît **FixMyQuarter**, une **plateforme communautaire open-source** permettant aux citoyens de **signaler, suivre et résoudre les problèmes de leur quartier**, tout en favorisant la collaboration avec les associations et les autorités locales.
