@@ -1,0 +1,1 @@
+Ces scripts doivent être exécutables. Une fois créés, n'oublie pas de lancer : chmod +x infra/*.sh
