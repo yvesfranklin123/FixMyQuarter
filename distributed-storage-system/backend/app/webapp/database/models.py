@@ -1,85 +1,41 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, Float, JSON, Table
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, BigInteger
 from sqlalchemy.orm import relationship
-from datetime import datetime
-from .db import Base
+from sqlalchemy.sql import func
+from app.webapp.database.db import Base
 
 class User(Base):
     __tablename__ = "users"
-
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    role = Column(String, default="user")
     is_active = Column(Boolean, default=True)
-    quota_limit = Column(Integer, default=524288000)
-    quota_used = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
-    files = relationship("File", back_populates="owner")
-    audit_logs = relationship("AuditLog", back_populates="user")
+class StorageNode(Base):
+    __tablename__ = "storage_nodes"
+    id = Column(String, primary_key=True)  # ex: "node-01"
+    ip_address = Column(String, unique=True)
+    total_capacity = Column(BigInteger) # en octets
+    available_capacity = Column(BigInteger)
+    is_online = Column(Boolean, default=False)
+    last_heartbeat = Column(DateTime(timezone=True), onupdate=func.now())
 
-class Node(Base):
-    __tablename__ = "nodes"
-
-    id = Column(String, primary_key=True, index=True)
-    ip_address = Column(String)
-    port = Column(Integer, default=9999)
-    status = Column(String, default="ONLINE")
-    cpu_limit = Column(Integer)
-    mem_limit = Column(Integer)
-    total_capacity = Column(Integer)
-    used_capacity = Column(Integer, default=0)
-    stats = Column(JSON, nullable=True)
-    last_heartbeat = Column(DateTime, default=datetime.utcnow)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    chunk_locations = relationship("ChunkLocation", back_populates="node")
-
-class File(Base):
+class FileMetadata(Base):
     __tablename__ = "files"
-
     id = Column(Integer, primary_key=True, index=True)
     filename = Column(String, index=True)
-    size = Column(Integer)
+    size = Column(BigInteger)
     checksum = Column(String)
-    status = Column(String, default="UPLOADING")
-    user_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    owner = relationship("User", back_populates="files")
-    chunks = relationship("FileChunk", back_populates="file", cascade="all, delete-orphan")
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relation avec les chunks (un fichier a plusieurs chunks)
+    chunks = relationship("FileChunk", back_populates="file")
 
 class FileChunk(Base):
-    __tablename__ = "file_chunks"
-
-    id = Column(String, primary_key=True, index=True)
+    __tablename__ = "chunks"
+    id = Column(String, primary_key=True) # Hash du chunk
     file_id = Column(Integer, ForeignKey("files.id"))
     chunk_index = Column(Integer)
-    size = Column(Integer)
-    checksum = Column(String)
+    node_id = Column(String, ForeignKey("storage_nodes.id"))
     
-    file = relationship("File", back_populates="chunks")
-    locations = relationship("ChunkLocation", back_populates="chunk", cascade="all, delete-orphan")
-
-class ChunkLocation(Base):
-    __tablename__ = "chunk_locations"
-
-    id = Column(Integer, primary_key=True, index=True)
-    chunk_id = Column(String, ForeignKey("file_chunks.id"))
-    node_id = Column(String, ForeignKey("nodes.id"))
-    is_primary = Column(Boolean, default=False)
-    
-    chunk = relationship("FileChunk", back_populates="locations")
-    node = relationship("Node", back_populates="chunk_locations")
-
-class AuditLog(Base):
-    __tablename__ = "audit_logs"
-
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    action = Column(String)
-    details = Column(JSON)
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-    user = relationship("User", back_populates="audit_logs")
+    file = relationship("FileMetadata", back_populates="chunks")

@@ -1,42 +1,72 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
-from app.database.db import engine
-from app.database import models
+import grpc
+from app import node_pb2
+from app import node_pb2_grpc
 
-# Import des routeurs (seront créés dans l'étape suivante)
-from app.webapp.routers import auth, nodes, files, monitoring, websocket
+app = FastAPI()
 
-# Création automatique des tables au démarrage (pour le dev)
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI(
-    title="Distributed Storage System API",
-    description="API for managing custom containers and distributed storage.",
-    version="1.0.0"
-)
-
-# Configuration CORS (Indispensable pour que le Frontend Next.js port 3000 puisse parler au Backend port 8000)
-origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
+# Configuration CORS pour le Frontend Next.js
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # À sécuriser en prod
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Inclusion des routes
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-app.include_router(nodes.router, prefix="/nodes", tags=["Nodes"])
-app.include_router(files.router, prefix="/files", tags=["Files"])
-app.include_router(monitoring.router, prefix="/monitor", tags=["Monitoring"])
-app.include_router(websocket.router, prefix="/ws", tags=["Realtime"])
+# Configuration gRPC
+GRPC_SERVER = 'localhost:50051'
+
+def get_grpc_stub():
+    """Crée une connexion temporaire vers le service gRPC"""
+    channel = grpc.insecure_channel(GRPC_SERVER)
+    return node_pb2_grpc.NodeControllerStub(channel)
 
 @app.get("/")
-def health_check():
-    return {"status": "ok", "system": "Distributed Storage System v1.0"}
+def read_root():
+    return {"system": "Distributed Storage", "status": "running", "mode": "Microservices (gRPC)"}
+
+@app.get("/nodes")
+def list_nodes():
+    """Récupère la liste des nœuds via gRPC"""
+    try:
+        stub = get_grpc_stub()
+        # Appel gRPC
+        response = stub.ListNodes(node_pb2.Empty())
+        
+        # Conversion Protobuf -> JSON pour le frontend
+        nodes_json = []
+        for node in response.nodes:
+            nodes_json.append({
+                "id": node.node_id,
+                "ip": node.ip_address,
+                "status": node.status,
+                "max_capacity": f"{node.max_capacity_gb} GB",
+                "used_capacity": node.used_capacity_gb,
+                "is_full": node.is_full
+            })
+        return nodes_json
+    except grpc.RpcError as e:
+        raise HTTPException(status_code=503, detail=f"Service gRPC indisponible: {e.details()}")
+
+@app.post("/nodes/provision")
+def provision_node(node_id: str, ip: str, max_size_gb: int = 10):
+    """Demande la création d'un nœud via gRPC"""
+    try:
+        stub = get_grpc_stub()
+        request = node_pb2.CreateNodeRequest(
+            node_id=node_id, 
+            ip_address=ip, 
+            max_capacity_gb=max_size_gb
+        )
+        
+        response = stub.CreateNode(request)
+        
+        if not response.success:
+            raise HTTPException(status_code=400, detail=response.message)
+            
+        return {"message": response.message, "node_id": node_id}
+        
+    except grpc.RpcError as e:
+        raise HTTPException(status_code=503, detail=f"Erreur gRPC: {e.details()}")

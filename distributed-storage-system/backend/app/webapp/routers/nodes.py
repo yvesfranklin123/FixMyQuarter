@@ -69,6 +69,41 @@ def list_nodes(
     
     return nodes
 
+# --- NOUVELLE MÉTHODE AJOUTÉE POUR RÉGLER L'ERREUR 404 ---
+@router.delete("/{node_id}")
+def delete_node(
+    node_id: str,
+    current_user: models.User = Depends(dependencies.get_current_admin_user),
+    db: Session = Depends(dependencies.get_db)
+):
+    """
+    Supprime définitivement un node du cluster.
+    """
+    node = db.query(models.Node).filter(models.Node.id == node_id).first()
+    if not node:
+        raise HTTPException(status_code=404, detail="Node not found in database")
+
+    # Envoyer la commande de suppression physique à l'orchestrateur
+    # Note: 'delete_node' doit être géré dans orchestrator.py
+    response = ipc_client.send_command("delete_node", node_id=node_id)
+    
+    if response.get("error"):
+        raise HTTPException(status_code=500, detail=f"Orchestrator error: {response['error']}")
+
+    # Enregistrer l'action dans l'Audit Log
+    audit = models.AuditLog(
+        user_id=current_user.id,
+        action="DELETE_NODE",
+        details={"node_id": node_id}
+    )
+    db.add(audit)
+
+    # Supprimer de la base de données SQL
+    db.delete(node)
+    db.commit()
+
+    return {"status": "success", "message": f"Node {node_id} deleted"}
+
 @router.post("/{node_id}/stop")
 def stop_node(
     node_id: str,

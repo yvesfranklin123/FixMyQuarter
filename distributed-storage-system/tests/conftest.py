@@ -1,54 +1,67 @@
 import sys
 import os
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from typing import Generator
 from fastapi.testclient import TestClient
 
-# Ajout du dossier backend au sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/backend")
+# --- 1. CONFIGURATION DU CHEMIN (PATH) ---
+# On ajoute le dossier 'backend' au chemin de recherche de Python
+# pour qu'il puisse trouver "app"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+backend_path = os.path.join(project_root, "backend")
 
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
+
+# --- 2. IMPORTS CORRIGÉS ---
+# Attention : 'database' et 'main' sont dans 'app.webapp', pas juste 'app'
 from app.config import settings
-from app.database.db import Base, get_db
-from app.webapp.main import app
+from app.webapp.database.db import Base, get_db, engine
+from app.webapp.main import app as fastapi_app
 
-# Configuration d'une DB en mémoire pour les tests
-TEST_DATABASE_URL = "sqlite:///:memory:"
+# --- 3. FIXTURES PYTEST ---
 
-engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_env():
-    # Override des settings pour éviter de toucher au vrai système
-    settings.ROOTFS_BASE_PATH = "/tmp/test_rootfs"
-    settings.CONTAINERS_PATH = "/tmp/test_containers"
-    settings.CHUNK_SIZE_MB = 1  # 1MB pour les tests
+@pytest.fixture(scope="session")
+def db_engine():
+    """Crée le moteur de base de données pour les tests."""
+    # On utilise SQLite en mémoire ou fichier pour les tests
+    return engine
 
 @pytest.fixture(scope="function")
-def db_session():
-    # Création des tables
-    Base.metadata.create_all(bind=engine)
+def db(db_engine):
+    """
+    Crée une nouvelle session de base de données pour chaque test.
+    Crée les tables avant le test et les supprime après.
+    """
+    # Crée les tables
+    Base.metadata.create_all(bind=db_engine)
+    
+    # Prépare la session
+    from sqlalchemy.orm import sessionmaker
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
     session = TestingSessionLocal()
+    
     yield session
+    
+    # Nettoyage après le test
     session.close()
-    # Suppression des tables après le test
-    Base.metadata.drop_all(bind=engine)
+    Base.metadata.drop_all(bind=db_engine)
 
 @pytest.fixture(scope="function")
-def client(db_session):
+def client(db):
+    """
+    Crée un client de test FastAPI qui utilise la DB de test.
+    Surcharge la dépendance get_db pour utiliser la session de test.
+    """
     def override_get_db():
         try:
-            yield db_session
+            yield db
         finally:
-            db_session.close()
+            db.close()
 
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
+    fastapi_app.dependency_overrides[get_db] = override_get_db
+    with TestClient(fastapi_app) as c:
         yield c
+    # Nettoyage de l'override après le test
+    fastapi_app.dependency_overrides.clear()

@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package node;
+
+// Service de gestion des nœuds
+service NodeController {
+  // Provisionner un nouveau nœud
+  rpc CreateNode (CreateNodeRequest) returns (NodeResponse);
+
+  // Obtenir le statut d'un nœud spécifique
+  rpc GetNodeStatus (NodeIdRequest) returns (NodeInfo);
+
+  // Lister tous les nœuds
+  rpc ListNodes (Empty) returns (NodeList);
+}
+
+message Empty {}
+
+message CreateNodeRequest {
+  string node_id = 1;
+  string ip_address = 2;
+  int64 max_capacity_gb = 3; // Capacité max en Go
+}
+
+message NodeIdRequest {
+  string node_id = 1;
+}
+
+message NodeResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message NodeInfo {
+  string node_id = 1;
+  string ip_address = 2;
+  string status = 3;        // "ONLINE", "OFFLINE", "ERROR"
+  int64 max_capacity_gb = 4;
+  float used_capacity_gb = 5;
+  bool is_full = 6;
+}
+
+message NodeList {
+  repeated NodeInfo nodes = 1;
+}

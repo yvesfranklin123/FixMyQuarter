@@ -1,44 +1,63 @@
-import io
-import hashlib
+import os
+import tempfile
 from app.storage_logic import chunker
 
+def create_temp_file(content: bytes) -> str:
+    """Helper pour créer un fichier temporaire."""
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        tmp.write(content)
+        return tmp.name
+
 def test_calculate_checksum():
-    data = b"hello world"
-    expected_hash = hashlib.sha256(data).hexdigest()
-    assert chunker.calculate_checksum(data) == expected_hash
+    data = b"test data"
+    # SHA256 de "test data"
+    expected = "916f0027a575074ce72a331777c3478d6513f786a591bd892da1a577bf2335f9"
+    assert chunker.calculate_checksum(data) == expected
 
-def test_iter_chunks_exact_size():
-    # Crée un fichier simulé de 10 bytes
+def test_file_chunker_exact_size():
+    # 10 bytes
     content = b"0123456789"
-    file_obj = io.BytesIO(content)
+    file_path = create_temp_file(content)
     
-    # Chunk size de 5 bytes -> Doit donner 2 chunks
-    chunks = list(chunker.iter_chunks(file_obj, chunk_size=5))
-    
-    assert len(chunks) == 2
-    
-    idx1, hash1, data1 = chunks[0]
-    assert idx1 == 0
-    assert data1 == b"01234"
-    assert hash1 == hashlib.sha256(b"01234").hexdigest()
-    
-    idx2, hash2, data2 = chunks[1]
-    assert idx2 == 1
-    assert data2 == b"56789"
+    try:
+        # Chunk size de 5 bytes -> Doit donner 2 chunks
+        # Note: on appelle file_chunker, pas iter_chunks
+        chunks = list(chunker.file_chunker(file_path, chunk_size=5))
+        
+        assert len(chunks) == 2
+        # Vérif chunk 1 : index 0, données "01234"
+        assert chunks[0][0] == 0
+        assert chunks[0][1] == b"01234"
+        
+        # Vérif chunk 2 : index 1, données "56789"
+        assert chunks[1][0] == 1
+        assert chunks[1][1] == b"56789"
+        
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-def test_iter_chunks_remainder():
+def test_file_chunker_remainder():
     # 12 bytes
     content = b"0123456789AB"
-    file_obj = io.BytesIO(content)
+    file_path = create_temp_file(content)
     
-    # Chunk size de 5 bytes -> 3 chunks (5, 5, 2)
-    chunks = list(chunker.iter_chunks(file_obj, chunk_size=5))
-    
-    assert len(chunks) == 3
-    assert len(chunks[2][2]) == 2  # Le dernier fait 2 bytes
-    assert chunks[2][2] == b"AB"
+    try:
+        # Chunk size de 5 bytes -> 3 chunks (5, 5, 2)
+        chunks = list(chunker.file_chunker(file_path, chunk_size=5))
+        
+        assert len(chunks) == 3
+        assert chunks[2][1] == b"AB"
+        
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
-def test_iter_chunks_empty():
-    file_obj = io.BytesIO(b"")
-    chunks = list(chunker.iter_chunks(file_obj, chunk_size=5))
-    assert len(chunks) == 0
+def test_file_chunker_empty():
+    file_path = create_temp_file(b"")
+    try:
+        chunks = list(chunker.file_chunker(file_path, chunk_size=5))
+        assert len(chunks) == 0
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)

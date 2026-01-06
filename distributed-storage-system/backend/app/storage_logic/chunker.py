@@ -1,25 +1,26 @@
 import hashlib
+import os
 from typing import Generator, Tuple
-from ..config import settings
-
-def iter_chunks(file_obj, chunk_size: int = None) -> Generator[Tuple[int, str, bytes], None, None]:
-    """
-    Lit un fichier (file-like object) et génère des chunks.
-    Retourne: (index, sha256_checksum, data_bytes)
-    """
-    if chunk_size is None:
-        chunk_size = settings.CHUNK_SIZE_BYTES
-
-    chunk_index = 0
-    while True:
-        data = file_obj.read(chunk_size)
-        if not data:
-            break
-        
-        sha256_hash = hashlib.sha256(data).hexdigest()
-        yield chunk_index, sha256_hash, data
-        
-        chunk_index += 1
 
 def calculate_checksum(data: bytes) -> str:
+    """Calcule le hash SHA256 d'un bloc de données."""
     return hashlib.sha256(data).hexdigest()
+
+def file_chunker(file_path: str, chunk_size: int) -> Generator[Tuple[int, bytes, str], None, None]:
+    """
+    Lit un fichier et le découpe en morceaux (chunks).
+    Yield: (index, données_binaires, checksum)
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"Le fichier {file_path} n'existe pas.")
+
+    with open(file_path, "rb") as f:
+        index = 0
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                break
+            
+            checksum = calculate_checksum(chunk)
+            yield index, chunk, checksum
+            index += 1
