@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package admin;
+
+service AdminControl {
+  // Force un nettoyage des fichiers temporaires
+  rpc TriggerGC (GCRequest) returns (GCResponse) {}
+  
+  // Met le node en mode maintenance (lecture seule)
+  rpc SetMaintenanceMode (MaintenanceRequest) returns (MaintenanceResponse) {}
+}
+
+message GCRequest {
+  bool aggressive = 1;
+}
+
+message GCResponse {
+  int64 freed_bytes = 1;
+}
+
+message MaintenanceRequest {
+  bool enable = 1;
+  string reason = 2;
+}
+
+message MaintenanceResponse {
+  bool success = 1;
+  string status = 2;
+}

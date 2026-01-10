@@ -1,0 +1,13 @@
+# Autoriser les bots sur la racine (Landing page)
+User-agent: *
+Allow: /
+
+# Bloquer l'accès aux données privées et à l'admin
+Disallow: /drive/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /shared-with-me/
+Disallow: /_next/
+
+# Sitemap (Optionnel)
+Sitemap: https://nexus.yourdomain.com/sitemap.xml

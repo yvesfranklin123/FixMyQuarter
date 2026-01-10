@@ -1,0 +1,35 @@
+# --- Framework Web & API ---
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+email-validator==2.1.0
+
+# --- Base de Données ---
+sqlalchemy==2.0.25
+alembic==1.13.1
+psycopg2-binary==2.9.9
+redis==5.0.1  # Client Redis standard & Async
+
+# --- Sécurité & Auth ---
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pyotp==2.9.0  # 2FA
+cryptography==42.0.0
+
+# --- Tâches de Fond ---
+celery[redis]==5.3.6
+
+# --- Infrastructure & Réseau ---
+grpcio==1.60.0
+grpcio-tools==1.60.0
+protobuf==4.25.2
+aiofiles==23.2.1
+httpx==0.26.0
+requests==2.31.0
+
+# --- Utilitaires & Métier ---
+pydantic==2.6.0
+pydantic-settings==2.1.0
+stripe==8.1.0
+Pillow==10.2.0  # Traitement Image
+python-magic==0.4.27  # Détection MIME type réelle

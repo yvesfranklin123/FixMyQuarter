@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package node;
+
+service StorageNode {
+  // Vérification de santé (Heartbeat)
+  rpc HealthCheck (Empty) returns (HealthResponse) {}
+
+  // Upload en streaming (Client -> Serveur)
+  rpc UploadBlock (stream FileChunk) returns (UploadResponse) {}
+
+  // Download en streaming (Serveur -> Client)
+  rpc DownloadBlock (DownloadRequest) returns (stream FileChunk) {}
+
+  // Suppression physique
+  rpc DeleteBlock (DeleteRequest) returns (DeleteResponse) {}
+}
+
+message Empty {}
+
+message HealthResponse {
+  string status = 1; // "SERVING", "FULL", "MAINTENANCE"
+  int64 disk_free = 2; // Octets
+  int64 disk_used = 3;
+  float cpu_usage = 4;
+}
+
+message FileChunk {
+  bytes data = 1;
+  string block_hash = 2; // Hash SHA-256 du bloc complet (pour vérif)
+}
+
+message UploadResponse {
+  bool success = 1;
+  string hash = 2;
+  int64 bytes_written = 3;
+  string error_message = 4;
+}
+
+message DownloadRequest {
+  string hash = 1;
+}
+
+message DeleteRequest {
+  string hash = 1;
+}
+
+message DeleteResponse {
+  bool success = 1;
+}

@@ -1,0 +1,38 @@
+{
+  "name": "NexusCloud Distributed Storage",
+  "short_name": "NexusCloud",
+  "description": "Système de stockage distribué haute performance, sécurisé et chiffré.",
+  "start_url": "/drive",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Fichiers Récents",
+      "short_name": "Récents",
+      "url": "/drive/recent",
+      "icons": [{ "src": "/icons/recent.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Upload Rapide",
+      "short_name": "Upload",
+      "url": "/drive?upload=true",
+      "icons": [{ "src": "/icons/upload.png", "sizes": "192x192" }]
+    }
+  ]
+}

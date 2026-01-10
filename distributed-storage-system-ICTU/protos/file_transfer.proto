@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package transfer;
+
+// Service pour le transfert de fichiers haute vitesse (Optionnel)
+service FileTransfer {
+  // Initie une session de transfert
+  rpc InitSession (SessionRequest) returns (SessionResponse) {}
+  
+  // Envoie un heartbeat pour garder la session active
+  rpc KeepAlive (KeepAliveRequest) returns (KeepAliveResponse) {}
+}
+
+message SessionRequest {
+  string file_id = 1;
+  string user_token = 2;
+}
+
+message SessionResponse {
+  string session_id = 1;
+  string stream_url = 2; // ex: wss://node-1.nexus/stream/123
+  int32 ttl_seconds = 3;
+}
+
+message KeepAliveRequest {
+  string session_id = 1;
+}
+
+message KeepAliveResponse {
+  bool active = 1;
+}

@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  # --- 1. Base de Données (PostgreSQL) ---
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secure_password
+      POSTGRES_DB: nexus_db
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - nexus-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # --- 2. Cache & Message Broker (Redis) ---
+  redis:
+    image: redis:7-alpine
+    restart: always
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - nexus-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+
+  # --- 3. API Backend (Cerveau) ---
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:secure_password@db:5432/nexus_db
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=changeme_in_production_123456
+      - STORAGE_NODES=node-1:50051,node-2:50051
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - nexus-net
+
+  # --- 4. Worker (Tâches de fond: Vidéo, Email, Virus) ---
+  worker:
+    build: 
+      context: ./backend
+    command: celery -A app.workers.celery_app worker --loglevel=info -Q default,media,security,system
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:secure_password@db:5432/nexus_db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - backend
+    networks:
+      - nexus-net
+
+  # --- 5. Storage Node 1 (Simulation Agent Physique) ---
+  node-1:
+    build:
+      context: ./backend
+    # Lance l'agent gRPC au lieu de l'API HTTP
+    command: python3 -m app.node_code.agent
+    environment:
+      - NODE_ID=node_1
+      - NODE_PORT=50051
+      - STORAGE_ROOT=/data_storage
+      - NODE_MASTER_SECRET=key_node_1
+    volumes:
+      - ./data/containers/node1:/data_storage
+    networks:
+      - nexus-net
+
+  # --- 6. Storage Node 2 (Réplication) ---
+  node-2:
+    build:
+      context: ./backend
+    command: python3 -m app.node_code.agent
+    environment:
+      - NODE_ID=node_2
+      - NODE_PORT=50051
+      - STORAGE_ROOT=/data_storage
+      - NODE_MASTER_SECRET=key_node_2
+    volumes:
+      - ./data/containers/node2:/data_storage
+    networks:
+      - nexus-net
+
+  # --- 7. Load Balancer ---
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - nexus-net
+
+  # --- 8. Custom Monitor (Remplacement Prometheus) ---
+  monitor:
+    build:
+      context: ./backend
+    # Monte le script de monitoring depuis le dossier infra
+    volumes:
+      - ./infra/monitor_agent.py:/app/monitor_agent.py
+      - ./backend:/app
+    command: python3 /app/monitor_agent.py
+    environment:
+      - STORAGE_NODES=node-1:50051,node-2:50051
+    networks:
+      - nexus-net
+
+networks:
+  nexus-net:
+    driver: bridge
